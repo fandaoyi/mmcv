@@ -198,6 +198,21 @@ def get_extensions():
         return extensions
 
     if EXT_TYPE == 'parrots':
+        def set_parrots_build_env():
+            # prevent ninja from using too many resources
+            try:
+                import psutil
+                num_cpu = len(psutil.Process().cpu_affinity())
+                cpu_use = min(6, num_cpu - 1)
+            except (ModuleNotFoundError, AttributeError):
+                cpu_use = 4
+
+            os.environ.setdefault('MAX_JOBS', str(cpu_use))
+            os.environ.setdefault("USE_NINJA", str(True))
+            # auto detect cuda arch.
+            os.environ.setdefault("AUTO_DETECT", str(True))
+
+        set_parrots_build_env()
         ext_name = 'mmcv._ext'
         from parrots.utils.build_extension import Extension
 
